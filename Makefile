@@ -4,10 +4,10 @@ CFLAGS += -std=c11 -O2 -Wall -Wextra -Wpedantic $(shell $(PKG_CONFIG) --cflags g
 LDLIBS += $(shell $(PKG_CONFIG) --libs gtk4)
 
 .PHONY: all clean
-all: nfkc-string-generator
+all: nfkcgen
 
-nfkc-string-generator: main.c
+nfkcgen: main.c
 	$(CC) $(CFLAGS) -o $@ $< $(LDLIBS)
 
 clean:
-	rm -f nfkc-string-generator
+	rm -f nfkcgen
