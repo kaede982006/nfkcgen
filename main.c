@@ -1,8 +1,11 @@
 #include <gtk/gtk.h>
 #include <string.h>
 
-/* The external-character alphabet is based on the first sample in the request. */
-static const char external_alphabet[] =
+/* 고전(classic) 외부 문자 집합 — 원본 관찰 문자. 넓히려면 이 문자열만 고치면 된다. */
+static const char classic_alphabet[] = "⣿㍰█";
+
+/* 신규(modern) 외부 문자 집합 — 현재 요청 표본 기반. */
+static const char modern_alphabet[] =
     "ᚤ⣵ཇ⡼ฏ⑳㌖ཀ⟁قज⣯ग⡮⯐⢀ش⣀चᚢ⢲ฒ∰ཆघ⡖ฐ⠲ฃ⌬⠔ﷺ⢷ᚣ⣏ظ⢘ሃ⧫⒇⣽دሄख⡅ف⧫ج¼ང⡝ሁཅ⟁⣣⧫صཉ⣻⨌⢨⒇⟁㏒⧫⠪ฅ⣜خሀฎ⡦ฑགﷻ⢺ع⟁⡧ؤ⢿ञ⡔㌌㍰⡭ङ⨌⢝ᚡ⒇ﷺ⠠ᚠئ㈱⠄ཁغ㎯⣳ضฆ⠁छ⧫ฌ⢟⬢कذ⟁ط⟁ሂ⡑झ⢢ح⣩";
 
 static GtkWidget *type_dropdown;
@@ -15,7 +18,8 @@ static GtkWidget *metrics_label;
 static GtkWidget *status_label;
 static GtkWidget *copy_button;
 static gchar *last_result;
-static GPtrArray *external_chars;
+static GPtrArray *classic_chars;
+static GPtrArray *modern_chars;
 
 static gsize
 codepoint_length(const char *text)
@@ -24,13 +28,32 @@ codepoint_length(const char *text)
 }
 
 static void
-append_random_external(GString *output, guint count)
+append_random_external(GString *output, GPtrArray *chars, guint count)
 {
     for (guint i = 0; i < count; i++) {
-        guint index = (guint)g_random_int_range(0, (gint)external_chars->len);
-        const gchar *character = g_ptr_array_index(external_chars, index);
+        guint index = (guint)g_random_int_range(0, (gint)chars->len);
+        const gchar *character = g_ptr_array_index(chars, index);
         g_string_append(output, character);
     }
+}
+
+/* 알파벳 문자열을 중복 없는 코드 포인트 배열로 만든다. */
+static GPtrArray *
+build_charset(const char *alphabet)
+{
+    GPtrArray *chars = g_ptr_array_new_with_free_func(g_free);
+    GHashTable *seen = g_hash_table_new(g_str_hash, g_str_equal);
+    for (const gchar *p = alphabet; *p; p = g_utf8_next_char(p)) {
+        gchar *character = g_strndup(p, g_utf8_next_char(p) - p);
+        if (g_hash_table_contains(seen, character)) {
+            g_free(character);
+        } else {
+            g_hash_table_add(seen, character);
+            g_ptr_array_add(chars, character);
+        }
+    }
+    g_hash_table_unref(seen);
+    return chars;
 }
 
 static GPtrArray *
@@ -56,26 +79,29 @@ read_general_lines(void)
     return parts;
 }
 
+/* klass: 1=완전, 2=앞 혼합, 3=뒤 혼합, 4=기존 3류(문장 사이·양끝 삽입).
+   chars: 고전 또는 신규 외부 문자 집합. */
 static gboolean
-build_string(guint type, guint target_length, GPtrArray *phrases,
-             GString *output, gchar **error_message)
+build_string(guint klass, GPtrArray *chars, guint target_length,
+             GPtrArray *phrases, GString *output, gchar **error_message)
 {
     gsize general_length = 0;
     for (guint i = 0; i < phrases->len; i++)
         general_length += codepoint_length(g_ptr_array_index(phrases, i));
 
-    if (type == 0) {
-        append_random_external(output, target_length);
+    if (klass == 1) {
+        append_random_external(output, chars, target_length);
         return TRUE;
     }
 
-    if (type == 1 && phrases->len != 1) {
-        *error_message = g_strdup("2류는 비어 있지 않은 일반 문자열을 정확히 한 줄 입력해야 합니다.");
+    if ((klass == 2 || klass == 3) && phrases->len != 1) {
+        *error_message = g_strdup_printf(
+            "%u류는 비어 있지 않은 일반 문자열을 정확히 한 줄 입력해야 합니다.", klass);
         return FALSE;
     }
 
-    if (type == 2 && phrases->len < 2) {
-        *error_message = g_strdup("3류는 서로 다른 일반 문자열을 두 줄 이상 입력해야 합니다.");
+    if (klass == 4 && phrases->len < 2) {
+        *error_message = g_strdup("4류는 서로 다른 일반 문자열을 두 줄 이상 입력해야 합니다.");
         return FALSE;
     }
 
@@ -88,17 +114,23 @@ build_string(guint type, guint target_length, GPtrArray *phrases,
 
     guint external_length = target_length - (guint)general_length;
 
-    if (type == 1) {
+    if (klass == 2) {   /* 앞에 일반 문자열 */
         g_string_append(output, g_ptr_array_index(phrases, 0));
-        append_random_external(output, external_length);
+        append_random_external(output, chars, external_length);
         return TRUE;
     }
 
-    /* 3류: every supplied phrase is surrounded by at least one external code point. */
+    if (klass == 3) {   /* 뒤에 일반 문자열 */
+        append_random_external(output, chars, external_length);
+        g_string_append(output, g_ptr_array_index(phrases, 0));
+        return TRUE;
+    }
+
+    /* 4류: 기존 3류 알고리즘. 각 문장을 외부 문자로 감싼다. */
     guint segments = phrases->len + 1;
     if (external_length < segments) {
         *error_message = g_strdup_printf(
-            "3류는 일반 문자열 %u개 사이와 양 끝에 외부 문자가 필요합니다. 현재 남은 외부 문자 수는 %u개입니다.",
+            "4류는 일반 문자열 %u개 사이와 양 끝에 외부 문자가 필요합니다. 현재 남은 외부 문자 수는 %u개입니다.",
             phrases->len, external_length);
         return FALSE;
     }
@@ -110,10 +142,10 @@ build_string(guint type, guint target_length, GPtrArray *phrases,
         segment_lengths[g_random_int_range(0, (gint)segments)]++;
 
     for (guint i = 0; i < phrases->len; i++) {
-        append_random_external(output, segment_lengths[i]);
+        append_random_external(output, chars, segment_lengths[i]);
         g_string_append(output, g_ptr_array_index(phrases, i));
     }
-    append_random_external(output, segment_lengths[segments - 1]);
+    append_random_external(output, chars, segment_lengths[segments - 1]);
     g_free(segment_lengths);
     return TRUE;
 }
@@ -134,13 +166,15 @@ on_generate_clicked(GtkButton *button, gpointer user_data)
     (void)button;
     (void)user_data;
 
-    guint type = gtk_drop_down_get_selected(GTK_DROP_DOWN(type_dropdown));
+    guint selected = gtk_drop_down_get_selected(GTK_DROP_DOWN(type_dropdown));
+    GPtrArray *chars = (selected < 4) ? classic_chars : modern_chars;
+    guint klass = (selected % 4) + 1;
     guint target_length = (guint)gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(length_spin));
     GPtrArray *phrases = read_general_lines();
     GString *generated = g_string_new(NULL);
     gchar *error_message = NULL;
 
-    if (!build_string(type, target_length, phrases, generated, &error_message)) {
+    if (!build_string(klass, chars, target_length, phrases, generated, &error_message)) {
         clear_result();
         gtk_label_set_text(GTK_LABEL(status_label), error_message);
         g_free(error_message);
@@ -193,16 +227,18 @@ on_type_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
     (void)pspec;
     (void)user_data;
 
-    guint type = gtk_drop_down_get_selected(GTK_DROP_DOWN(type_dropdown));
-    gboolean needs_general_text = (type != 0);
-    gtk_widget_set_sensitive(input_scroll, needs_general_text);
+    guint selected = gtk_drop_down_get_selected(GTK_DROP_DOWN(type_dropdown));
+    guint klass = (selected % 4) + 1;
+    gtk_widget_set_sensitive(input_scroll, klass != 1);
 
-    if (type == 0)
+    if (klass == 1)
         gtk_label_set_text(GTK_LABEL(input_help), "1류는 외부 유니코드 문자만 생성하므로 아래 입력란을 사용하지 않습니다.");
-    else if (type == 1)
+    else if (klass == 2)
         gtk_label_set_text(GTK_LABEL(input_help), "2류: 일반 문자열 한 개를 한 줄에 입력하세요. 결과의 맨 앞에 배치됩니다.");
+    else if (klass == 3)
+        gtk_label_set_text(GTK_LABEL(input_help), "3류: 일반 문자열 한 개를 한 줄에 입력하세요. 결과의 맨 뒤에 배치됩니다.");
     else
-        gtk_label_set_text(GTK_LABEL(input_help), "3류: 일반 문자열을 줄마다 입력하세요. 빈 줄은 무시되며 입력 순서대로 삽입됩니다.");
+        gtk_label_set_text(GTK_LABEL(input_help), "4류: 일반 문자열을 줄마다 입력하세요(두 줄 이상). 각 문장 사이와 양 끝에 외부 문자가 들어갑니다.");
 }
 
 static GtkWidget *
@@ -249,9 +285,14 @@ activate(GtkApplication *app, gpointer user_data)
     GtkWidget *type_label = gtk_label_new("문자열 유형");
     gtk_box_append(GTK_BOX(settings), type_label);
     const char *type_names[] = {
-        "1류 — 정규 문자열",
-        "2류 — 일반 문자열 1개를 맨 앞에 배치",
-        "3류 — 여러 일반 문자열을 중간에 삽입",
+        "고전 1류 — 완전한 NFKC 문자열",
+        "고전 2류 — 앞에 일반 문자열",
+        "고전 3류 — 뒤에 일반 문자열",
+        "고전 4류 — 문장 사이·양끝 삽입",
+        "신규 1류 — 완전한 NFKC 문자열",
+        "신규 2류 — 앞에 일반 문자열",
+        "신규 3류 — 뒤에 일반 문자열",
+        "신규 4류 — 문장 사이·양끝 삽입",
         NULL
     };
     type_dropdown = gtk_drop_down_new_from_strings(type_names);
@@ -324,6 +365,7 @@ activate(GtkApplication *app, gpointer user_data)
     gtk_window_present(GTK_WINDOW(window));
 }
 
+#ifndef NFKCGEN_SELFTEST
 int
 main(int argc, char **argv)
 {
@@ -331,18 +373,8 @@ main(int argc, char **argv)
        (한국어 입력에는 fcitx5-frontend-gtk4 패키지가 필요하다.) */
     g_setenv("GTK_IM_MODULE", "fcitx", FALSE);
 
-    external_chars = g_ptr_array_new_with_free_func(g_free);
-    GHashTable *seen_chars = g_hash_table_new(g_str_hash, g_str_equal);
-    for (const gchar *p = external_alphabet; *p; p = g_utf8_next_char(p)) {
-        gchar *character = g_strndup(p, g_utf8_next_char(p) - p);
-        if (g_hash_table_contains(seen_chars, character)) {
-            g_free(character);
-        } else {
-            g_hash_table_add(seen_chars, character);
-            g_ptr_array_add(external_chars, character);
-        }
-    }
-    g_hash_table_unref(seen_chars);
+    classic_chars = build_charset(classic_alphabet);
+    modern_chars = build_charset(modern_alphabet);
 
     GtkApplication *app = gtk_application_new(
         "org.xisik.nfkcgen", G_APPLICATION_DEFAULT_FLAGS);
@@ -351,6 +383,74 @@ main(int argc, char **argv)
 
     g_clear_object(&app);
     g_clear_pointer(&last_result, g_free);
-    g_ptr_array_unref(external_chars);
+    g_ptr_array_unref(classic_chars);
+    g_ptr_array_unref(modern_chars);
     return status;
 }
+#else  /* NFKCGEN_SELFTEST: build_string 분기 구조 검증 (make selftest) */
+static GPtrArray *
+phrases_of(const char *a, const char *b)
+{
+    GPtrArray *p = g_ptr_array_new_with_free_func(g_free);
+    if (a) g_ptr_array_add(p, g_strdup(a));
+    if (b) g_ptr_array_add(p, g_strdup(b));
+    return p;
+}
+
+static gchar *
+gen(guint klass, GPtrArray *chars, guint target, GPtrArray *phrases)
+{
+    GString *out = g_string_new(NULL);
+    gchar *err = NULL;
+    g_assert_true(build_string(klass, chars, target, phrases, out, &err));
+    g_assert_null(err);
+    return g_string_free(out, FALSE);
+}
+
+int
+main(void)
+{
+    (void)activate;  /* GUI 진입점은 self-test에서 쓰지 않는다 */
+    GPtrArray *cls = build_charset(classic_alphabet);
+    GPtrArray *mod = build_charset(modern_alphabet);
+    g_assert_cmpuint(cls->len, ==, 3);  /* ⣿ ㍰ █ */
+
+    /* 1류: 외부 문자만, 길이 == target */
+    GPtrArray *none = phrases_of(NULL, NULL);
+    gchar *s1 = gen(1, cls, 40, none);
+    g_assert_cmpuint(g_utf8_strlen(s1, -1), ==, 40);
+
+    /* 2류: 앞에 phrase, 길이 == target */
+    GPtrArray *one = phrases_of("안녕", NULL);
+    gchar *s2 = gen(2, mod, 30, one);
+    g_assert_true(g_str_has_prefix(s2, "안녕"));
+    g_assert_cmpuint(g_utf8_strlen(s2, -1), ==, 30);
+
+    /* 3류: 뒤에 phrase, 길이 == target */
+    gchar *s3 = gen(3, mod, 30, one);
+    g_assert_true(g_str_has_suffix(s3, "안녕"));
+    g_assert_cmpuint(g_utf8_strlen(s3, -1), ==, 30);
+
+    /* 4류: 두 phrase가 순서대로 들어가고 외부 문자로 감싸임, 길이 == target */
+    GPtrArray *two = phrases_of("가", "나");
+    gchar *s4 = gen(4, cls, 20, two);
+    g_assert_cmpuint(g_utf8_strlen(s4, -1), ==, 20);
+    const char *pa = strstr(s4, "가"), *pb = strstr(s4, "나");
+    g_assert_nonnull(pa); g_assert_nonnull(pb); g_assert_true(pa < pb);
+    g_assert_false(g_str_has_prefix(s4, "가"));   /* 앞이 외부 문자로 감싸임 */
+    g_assert_false(g_str_has_suffix(s4, "나"));   /* 뒤가 외부 문자로 감싸임 */
+
+    /* 오류 경로 */
+    GString *o = g_string_new(NULL); gchar *e = NULL;
+    g_assert_false(build_string(2, mod, 30, none, o, &e)); g_clear_pointer(&e, g_free);
+    g_assert_false(build_string(4, mod, 30, one, o, &e)); g_clear_pointer(&e, g_free);
+    g_assert_false(build_string(2, mod, 1, one, o, &e));  g_clear_pointer(&e, g_free);
+    g_string_free(o, TRUE);
+
+    g_free(s1); g_free(s2); g_free(s3); g_free(s4);
+    g_ptr_array_unref(none); g_ptr_array_unref(one); g_ptr_array_unref(two);
+    g_ptr_array_unref(cls); g_ptr_array_unref(mod);
+    g_print("selftest OK\n");
+    return 0;
+}
+#endif
