@@ -257,9 +257,26 @@ activate(GtkApplication *app, gpointer user_data)
     gtk_window_present(GTK_WINDOW(window));
 }
 
+/* 일부 GTK4 테마(예: KDE Breeze)가 스크롤바 슬라이더 gizmo에 음수 최소 크기를 주어
+   "reported min ... but sizes must be >= 0" 경고가 반복된다. 앱 코드로는 못 고치는
+   테마 버그이고 무해하므로, 이 메시지만 좁게 버리고 나머지 로그는 그대로 넘긴다. */
+static GLogWriterOutput
+drop_gizmo_size_warnings(GLogLevelFlags level, const GLogField *fields,
+                         gsize n_fields, gpointer user_data)
+{
+    for (gsize i = 0; i < n_fields; i++) {
+        if (g_strcmp0(fields[i].key, "MESSAGE") == 0 && fields[i].value != NULL &&
+            strstr((const char *)fields[i].value, "but sizes must be >= 0") != NULL)
+            return G_LOG_WRITER_HANDLED;
+    }
+    return g_log_writer_default(level, fields, n_fields, user_data);
+}
+
 int
 main(int argc, char **argv)
 {
+    g_log_set_writer_func(drop_gizmo_size_warnings, NULL, NULL);
+
     /* fcitx 등 다국어 입력기를 GTK4가 불러오게 한다. 이미 설정돼 있으면 그대로 둔다.
        (한국어 입력에는 fcitx5-frontend-gtk4 패키지가 필요하다.) */
     g_setenv("GTK_IM_MODULE", "fcitx", FALSE);

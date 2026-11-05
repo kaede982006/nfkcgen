@@ -19,6 +19,8 @@ sudo apt install fcitx5-frontend-gtk4
 
 프로그램은 시작 시 `GTK_IM_MODULE`이 비어 있으면 `fcitx`로 설정합니다. 데스크톱에서 이미 다른 입력기(ibus 등)를 지정했다면 그 값을 그대로 존중합니다.
 
+일부 GTK4 테마(예: KDE Breeze)는 스크롤바 슬라이더에 음수 최소 크기를 주어 `GtkGizmo (slider) reported min ... but sizes must be >= 0` 경고를 반복 출력합니다. 앱 코드로는 못 고치는 테마 버그이며 무해하므로, 프로그램은 이 메시지만 좁게 걸러내고 다른 로그는 그대로 출력합니다(`drop_gizmo_size_warnings`).
+
 빌드 및 실행:
 
 ```sh
