@@ -50,5 +50,7 @@ make selftest
 
 ## 파일
 
-- `main.c` — GTK 4 사용자 인터페이스, 문자열 생성 로직, `NFKCGEN_SELFTEST` 분기 검증
-- `Makefile` — `pkg-config gtk4`를 이용한 빌드 및 `selftest` 타깃
+- `generator.h` / `generator.c` — 외부 문자 집합과 순수 생성 로직(`build_string` 등). GTK 비의존, glib만 사용
+- `main.c` — GTK 4 사용자 인터페이스. `generator.h`를 통해 생성 로직을 호출
+- `selftest.c` — `build_string` 분기 구조 검증(glib만 링크)
+- `Makefile` — GUI 빌드(`gtk4`)와 `selftest` 타깃(`glib-2.0`)
