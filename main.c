@@ -130,16 +130,25 @@ on_type_changed(GObject *object, GParamSpec *pspec, gpointer user_data)
         gtk_label_set_text(GTK_LABEL(input_help), "4류: 일반 문자열을 줄마다 입력하세요(두 줄 이상). 각 문장 사이와 양 끝에 외부 문자가 들어갑니다.");
 }
 
+/* 텍스트뷰를 스크롤 창에 담아 반환한다. 최소 높이는 안쪽 뷰가 아니라 스크롤 창에
+   지정해야 스크롤바 슬라이더 최소 크기가 음수로 계산되지 않는다. word-wrap이므로
+   가로 스크롤바는 두지 않는다. *out_view로 내부 텍스트뷰를 돌려준다. */
 static GtkWidget *
-make_text_area(gint height, gboolean editable)
+make_text_area(gint min_height, gboolean editable, GtkWidget **out_view)
 {
     GtkWidget *view = gtk_text_view_new();
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(view), GTK_WRAP_WORD_CHAR);
     gtk_text_view_set_monospace(GTK_TEXT_VIEW(view), TRUE);
     gtk_text_view_set_editable(GTK_TEXT_VIEW(view), editable);
     gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(view), editable);
-    gtk_widget_set_size_request(view, -1, height);
-    return view;
+
+    GtkWidget *scroll = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll),
+                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+    gtk_scrolled_window_set_min_content_height(GTK_SCROLLED_WINDOW(scroll), min_height);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), view);
+    *out_view = view;
+    return scroll;
 }
 
 static void
@@ -206,10 +215,7 @@ activate(GtkApplication *app, gpointer user_data)
     gtk_label_set_wrap(GTK_LABEL(input_help), TRUE);
     gtk_box_append(GTK_BOX(root), input_help);
 
-    input_view = make_text_area(145, TRUE);
-    input_scroll = gtk_scrolled_window_new();
-    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(input_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(input_scroll), input_view);
+    input_scroll = make_text_area(145, TRUE, &input_view);
     gtk_box_append(GTK_BOX(root), input_scroll);
     gtk_widget_set_sensitive(input_scroll, FALSE);
 
@@ -219,10 +225,7 @@ activate(GtkApplication *app, gpointer user_data)
     gtk_widget_set_margin_top(output_heading, 8);
     gtk_box_append(GTK_BOX(root), output_heading);
 
-    output_view = make_text_area(150, FALSE);
-    GtkWidget *output_scroll = gtk_scrolled_window_new();
-    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(output_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(output_scroll), output_view);
+    GtkWidget *output_scroll = make_text_area(150, FALSE, &output_view);
     gtk_widget_set_vexpand(output_scroll, TRUE);  /* 남는 세로 공간을 결과 박스가 채운다 */
     gtk_box_append(GTK_BOX(root), output_scroll);
 
