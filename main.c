@@ -277,9 +277,12 @@ main(int argc, char **argv)
 {
     g_log_set_writer_func(drop_gizmo_size_warnings, NULL, NULL);
 
+#ifndef G_OS_WIN32
     /* fcitx 등 다국어 입력기를 GTK4가 불러오게 한다. 이미 설정돼 있으면 그대로 둔다.
-       (한국어 입력에는 fcitx5-frontend-gtk4 패키지가 필요하다.) */
+       (한국어 입력에는 fcitx5-frontend-gtk4 패키지가 필요하다.)
+       Windows는 GTK 기본 IME 모듈이 한국어 입력을 처리하므로 건드리지 않는다. */
     g_setenv("GTK_IM_MODULE", "fcitx", FALSE);
+#endif
 
     classic_chars = build_charset(classic_alphabet);
     modern_chars = build_charset(modern_alphabet);

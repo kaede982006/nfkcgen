@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <ProjectGuid>{AAE60B09-3CE1-44D2-97B7-7E05B5B3FD36}</ProjectGuid>
+    <RootNamespace>nfkcgen</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <!-- GTK 4와 의존 라이브러리(glib, pango, cairo 등)는 vcpkg 매니페스트(vcpkg.json)로 받는다.
+       DLL은 빌드 출력 폴더로 자동 복사된다. GTK 포트는 arm64 Windows를 지원하지 않아 x64만 둔다. -->
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+    <VcpkgTriplet>x64-windows</VcpkgTriplet>
+    <VcpkgInstalledDir>$(MSBuildProjectDirectory)\vcpkg_installed\</VcpkgInstalledDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard_C>stdc11</LanguageStandard_C>
+      <!-- 소스가 UTF-8(한국어 문자열)이므로 코드페이지 해석을 막는다 -->
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <!-- vcpkg는 include\만 넣어 주므로 pkg-config gtk4가 주던 하위 경로를 직접 지정한다 -->
+      <AdditionalIncludeDirectories>$(VcpkgInstalledDir)$(VcpkgTriplet)\include\gtk-4.0;$(VcpkgInstalledDir)$(VcpkgTriplet)\include\glib-2.0;$(VcpkgInstalledDir)$(VcpkgTriplet)\lib\glib-2.0\include;$(VcpkgInstalledDir)$(VcpkgTriplet)\include\pango-1.0;$(VcpkgInstalledDir)$(VcpkgTriplet)\include\harfbuzz;$(VcpkgInstalledDir)$(VcpkgTriplet)\include\fribidi;$(VcpkgInstalledDir)$(VcpkgTriplet)\include\cairo;$(VcpkgInstalledDir)$(VcpkgTriplet)\include\gdk-pixbuf-2.0;$(VcpkgInstalledDir)$(VcpkgTriplet)\include\graphene-1.0;$(VcpkgInstalledDir)$(VcpkgTriplet)\lib\graphene-1.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <!-- WinMain 없이 기존 main()을 진입점으로 쓴다 -->
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <!-- Debug는 콘솔 창으로 GTK 경고를 볼 수 있게 한다 -->
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <!-- 소스는 Linux 버전과 공유한다 -->
+  <ItemGroup>
+    <ClCompile Include="..\main.c" />
+    <ClCompile Include="..\generator.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\generator.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vcpkg.json" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

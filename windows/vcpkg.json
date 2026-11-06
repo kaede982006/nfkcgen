@@ -1,0 +1,8 @@
+{
+  "name": "nfkcgen",
+  "version": "1.0.0",
+  "description": "NFKC 연구용 문자열 생성기 (Windows, GTK 4)",
+  "dependencies": [
+    "gtk"
+  ]
+}

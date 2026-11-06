@@ -50,6 +50,10 @@ make selftest
 
 빈 줄은 무시합니다. 목표 길이는 20~120 코드 포인트이며 기본값은 80입니다. 2·3·4류에서 일반 문자열의 코드 포인트 총합이 목표 길이 이상이면 생성을 거부합니다. 4류는 각 문장 사이와 양 끝에 외부 문자를 최소 한 개씩 둘 수 있어야 합니다.
 
+## Windows 버전
+
+Visual Studio 2026 프로젝트는 `windows/`에 있습니다. GTK 4를 vcpkg로 받아 쓰며, 자세한 내용은 [`windows/README.md`](windows/README.md)를 보세요.
+
 ## 파일
 
 - `generator.h` / `generator.c` — 외부 문자 집합과 순수 생성 로직(`build_string` 등). GTK 비의존, glib만 사용

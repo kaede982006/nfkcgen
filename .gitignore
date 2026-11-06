@@ -1,2 +1,6 @@
 nfkcgen
 nfkcgen-selftest
+windows/vcpkg_installed/
+windows/x64/
+windows/.vs/
+*.vcxproj.user
