@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=NFKC String Generator
+Name[ko]=NFKC 연구용 문자열 생성기
+Comment=Generate experimental strings and compare NFKC code point lengths
+Comment[ko]=실험용 문자열을 생성하고 NFKC 정규화 전후 코드 포인트 길이를 비교합니다
+Exec=nfkcgen
+Terminal=false
+Categories=Development;Utility;

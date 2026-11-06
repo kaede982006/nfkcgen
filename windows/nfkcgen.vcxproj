@@ -62,13 +62,13 @@
       <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
-  <!-- 소스는 Linux 버전과 공유한다 -->
+  <!-- 이 폴더 안의 소스로 빌드한다 -->
   <ItemGroup>
-    <ClCompile Include="..\main.c" />
-    <ClCompile Include="..\generator.c" />
+    <ClCompile Include="main.c" />
+    <ClCompile Include="generator.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\generator.h" />
+    <ClInclude Include="generator.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vcpkg.json" />

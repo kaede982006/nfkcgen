@@ -1,6 +1,6 @@
 # nfkcgen — Windows 버전 (Visual Studio 2026)
 
-소스(`../main.c`, `../generator.c`, `../generator.h`)는 Linux 버전과 공유합니다. 이 폴더에는 Visual Studio 프로젝트와 라이브러리 매니페스트만 있습니다.
+이 폴더만으로 Visual Studio 2026에서 빌드됩니다. 소스(`main.c`, `generator.c`, `generator.h`)는 `../linux/`의 것과 같은 내용의 사본이므로, 한쪽을 고치면 다른 쪽에도 똑같이 반영해야 합니다.
 
 ## 라이브러리
 
