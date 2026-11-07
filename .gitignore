@@ -1,7 +1,6 @@
-linux/nfkcgen
-linux/nfkcgen-selftest
-linux/build/
-windows/vcpkg_installed/
-windows/x64/
-windows/.vs/
+vcpkg_installed/
+x64/
+nfkcgen/
+.vs/
+dist/
 *.vcxproj.user

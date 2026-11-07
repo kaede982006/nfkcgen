@@ -2,5 +2,5 @@
   <Configurations>
     <Platform Name="x64" />
   </Configurations>
-  <Project Path="nfkcgen.vcxproj" />
+  <Project Path="nfkcgen.vcxproj" Id="aae60b09-3ce1-44d2-97b7-7e05b5b3fd36" />
 </Solution>

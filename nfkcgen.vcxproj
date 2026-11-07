@@ -36,7 +36,11 @@
     <VcpkgEnableManifest>true</VcpkgEnableManifest>
     <VcpkgTriplet>x64-windows</VcpkgTriplet>
     <VcpkgInstalledDir>$(MSBuildProjectDirectory)\vcpkg_installed\</VcpkgInstalledDir>
+    <!-- vcpkg integrate install 없이도 동작하도록 VCPKG_ROOT, 없으면 VS에 포함된 vcpkg를 직접 불러온다 -->
+    <VcpkgRoot Condition="'$(VcpkgRoot)' == '' and '$(VCPKG_ROOT)' != ''">$(VCPKG_ROOT)</VcpkgRoot>
+    <VcpkgRoot Condition="'$(VcpkgRoot)' == ''">$(VsInstallRoot)\VC\vcpkg</VcpkgRoot>
   </PropertyGroup>
+  <Import Project="$(VcpkgRoot)\scripts\buildsystems\msbuild\vcpkg.props" Condition="'$(VcpkgPropsImported)' != 'true' and Exists('$(VcpkgRoot)\scripts\buildsystems\msbuild\vcpkg.props')" />
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -74,4 +78,5 @@
     <None Include="vcpkg.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(VcpkgRoot)\scripts\buildsystems\msbuild\vcpkg.targets" Condition="Exists('$(VcpkgRoot)\scripts\buildsystems\msbuild\vcpkg.targets')" />
 </Project>
