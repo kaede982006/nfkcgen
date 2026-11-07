@@ -75,6 +75,9 @@
     <ClInclude Include="generator.h" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="nfkcgen.rc" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="vcpkg.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

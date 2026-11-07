@@ -1,5 +1,5 @@
 ﻿; Inno Setup 스크립트. 직접 돌리지 말고 build-installer.ps1로 만든다 (CrtDir를 넘겨 준다).
-#define AppName "NFKC 연구용 문자열 생성기"
+#define AppName "nfkcgen"
 #define AppVersion "1.0.0"
 
 [Setup]
@@ -15,6 +15,7 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\nfkcgen.exe
+SetupIconFile=logo.ico
 OutputDir=dist
 OutputBaseFilename=nfkcgen-{#AppVersion}-setup
 Compression=lzma2
@@ -35,6 +36,11 @@ Source: "{#CrtDir}\vcruntime140.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#CrtDir}\vcruntime140_1.dll"; DestDir: "{app}"; Flags: ignoreversion
 ; GTK 입력란의 이모지 선택기 등이 GSettings 스키마를 찾는다. 없으면 프로그램이 종료된다.
 Source: "dist\schemas\gschemas.compiled"; DestDir: "{app}\share\glib-2.0\schemas"; Flags: ignoreversion
+
+[InstallDelete]
+; 이전 이름으로 만든 바로가기 제거
+Type: files; Name: "{autoprograms}\NFKC 연구용 문자열 생성기.lnk"
+Type: files; Name: "{autodesktop}\NFKC 연구용 문자열 생성기.lnk"
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\nfkcgen.exe"

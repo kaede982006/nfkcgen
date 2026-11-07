@@ -1,0 +1,2 @@
+// Exe icon. GTK also uses the first icon as the window/taskbar icon.
+1 ICON "logo.ico"

@@ -156,7 +156,7 @@ activate(GtkApplication *app, gpointer user_data)
 {
     (void)user_data;
     GtkWidget *window = gtk_application_window_new(app);
-    gtk_window_set_title(GTK_WINDOW(window), "NFKC 연구용 문자열 생성기");
+    gtk_window_set_title(GTK_WINDOW(window), "nfkcgen");
     gtk_window_set_default_size(GTK_WINDOW(window), 860, 760);
 
     GtkWidget *root = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
@@ -167,7 +167,7 @@ activate(GtkApplication *app, gpointer user_data)
     gtk_window_set_child(GTK_WINDOW(window), root);
 
     GtkWidget *title = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large' weight='bold'>NFKC 연구용 문자열 생성기</span>");
+    gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large' weight='bold'>nfkcgen</span>");
     gtk_label_set_xalign(GTK_LABEL(title), 0.0f);
     gtk_box_append(GTK_BOX(root), title);
 
