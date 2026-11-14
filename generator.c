@@ -1,5 +1,4 @@
 #include "generator.h"
-#include <math.h>
 
 /* 고전(classic) 외부 문자 집합 — 원본 관찰 문자. 넓히려면 이 문자열만 고치면 된다. */
 const char classic_alphabet[] = "⣿㍰█";
@@ -46,16 +45,6 @@ build_charset(const char *alphabet)
     }
     g_hash_table_unref(seen);
     return chars;
-}
-
-/* Failed reads contribute zero; this is an experimental ranking objective, not SPL. */
-gdouble
-trial_value(gdouble lufs, gdouble seconds)
-{
-    if (!isfinite(lufs) || !isfinite(seconds) || lufs < -100 || lufs > 5 ||
-        seconds < 0 || seconds > 3600)
-        return -1;
-    return seconds * pow(10.0, lufs / 10.0);
 }
 
 static void

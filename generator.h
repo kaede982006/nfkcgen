@@ -13,6 +13,4 @@ gboolean build_string(guint klass, GPtrArray *chars, guint target_length,
 gboolean build_candidate(guint klass, GPtrArray *chars, guint target_length,
                          GPtrArray *phrases, const gchar *parent, guint32 seed,
                          GString *output, GString *external, gchar **error_message);
-/* seconds=0 records a failed read; invalid measurements return -1. */
-gdouble trial_value(gdouble lufs, gdouble seconds);
 #endif

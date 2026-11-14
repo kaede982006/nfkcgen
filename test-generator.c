@@ -1,5 +1,4 @@
 #include "generator.h"
-#include <math.h>
 #include <string.h>
 
 static void candidates(void)
@@ -58,21 +57,9 @@ static void candidates(void)
         g_ptr_array_unref(phrases); g_ptr_array_unref(chars);
     }
 }
-static void scoring(void)
-{
-    g_assert_cmpfloat_with_epsilon(trial_value(-20, 10), .1, 1e-12);
-    g_assert_cmpfloat_with_epsilon(trial_value(-20, 20), 2 * trial_value(-20, 10), 1e-12);
-    g_assert_cmpfloat_with_epsilon(trial_value(-10, 10), 10 * trial_value(-20, 10), 1e-12);
-    g_assert_cmpfloat(trial_value(-20, 0), ==, 0);
-    g_assert_cmpfloat(trial_value(NAN, 10), ==, -1);
-    g_assert_cmpfloat(trial_value(-20, INFINITY), ==, -1);
-    g_assert_cmpfloat(trial_value(-101, 10), ==, -1);
-    g_assert_cmpfloat(trial_value(-20, -1), ==, -1);
-}
 int main(int argc, char **argv)
 {
     g_test_init(&argc, &argv, NULL);
     g_test_add_func("/generator/classes-mutation-validation", candidates);
-    g_test_add_func("/research/scoring", scoring);
     return g_test_run();
 }
