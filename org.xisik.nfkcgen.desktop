@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=nfkcgen
+Comment=NFKC 연구용 문자열 생성기
+Exec=nfkcgen
+Icon=org.xisik.nfkcgen
+Terminal=false
+Categories=Utility;

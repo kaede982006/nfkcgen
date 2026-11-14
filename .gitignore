@@ -1,0 +1,5 @@
+/nfkcgen
+*.o
+/test-generator
+/dist/
+/test-ui
