@@ -433,9 +433,21 @@ drop_gizmo_size_warnings(GLogLevelFlags level, const GLogField *fields,
     return g_log_writer_default(level, fields, n_fields, user_data);
 }
 
+/* GNOME Wayland(예: Rocky Linux 10)의 기본 text-input 경로로는 GTK4 앱에 IBus 한글이
+   들어오지 않는 경우가 있다. 세션이 IBus를 쓰고 모듈 지정이 없을 때만 ibus 모듈을 고른다.
+   ibus-gtk4가 없으면 GTK가 기본 모듈로 되돌아가며, 사용자가 지정한 값은 건드리지 않는다. */
+static void
+prefer_ibus_im_module(void)
+{
+    const gchar *xmodifiers = g_getenv("XMODIFIERS");
+    if (!g_getenv("GTK_IM_MODULE") && xmodifiers && strstr(xmodifiers, "@im=ibus"))
+        g_setenv("GTK_IM_MODULE", "ibus", FALSE);
+}
+
 int
 main(int argc, char **argv)
 {
+    prefer_ibus_im_module();
     if (argc == 2 && g_strcmp0(argv[1], "--version") == 0) {
         g_print("nfkcgen %s\n", NFKCGEN_VERSION);
         return 0;

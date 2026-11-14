@@ -48,9 +48,11 @@ make check-ui  # Xvfb, dbus-run-session 필요
 sudo make install PREFIX=/usr/local
 ```
 
-**한글 입력:** GTK4 앱은 IBus GTK4 입력 모듈(`ibus-gtk4`)이 없으면 IBus 한글 엔진을 쓰지 못하고
-영문만 입력됩니다. Debian·Ubuntu는 `sudo apt install ibus-gtk4`, Fedora는 `sudo dnf install ibus-gtk4`
-후 앱을 다시 실행하세요. DEB/RPM 패키지는 이 모듈을 권장 의존성으로 함께 설치합니다.
+**한글 입력:** 세션이 IBus(`XMODIFIERS=@im=ibus`)를 쓰고 `GTK_IM_MODULE`이 비어 있으면
+nfkcgen은 GTK4 IBus 모듈을 직접 선택합니다. GNOME Wayland(Rocky Linux 10 등)의 기본 경로에서
+한글이 입력되지 않는 문제를 피하기 위한 것이며, 사용자가 지정한 `GTK_IM_MODULE`은 그대로 둡니다.
+이 모듈은 `ibus-gtk4` 패키지에 있습니다(Debian·Ubuntu: `apt`, Fedora·Rocky: `dnf`로 설치).
+DEB/RPM 패키지는 이를 권장 의존성으로 설치합니다.
 
 DEB/RPM은 x86_64 Linux용이며 빌드 환경의 라이브러리 ABI 요구사항을 따릅니다.
 이 릴리스는 사용자가 지정한 연구 버전 **1.0**이며 배포 태그는 `v1.0.0`입니다.

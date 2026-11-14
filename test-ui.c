@@ -4,6 +4,16 @@
 
 int main(void)
 {
+    g_unsetenv("GTK_IM_MODULE"); g_setenv("XMODIFIERS", "@im=ibus", TRUE);
+    prefer_ibus_im_module();
+    g_assert_cmpstr(g_getenv("GTK_IM_MODULE"), ==, "ibus");
+    g_setenv("GTK_IM_MODULE", "fcitx", TRUE);
+    prefer_ibus_im_module();
+    g_assert_cmpstr(g_getenv("GTK_IM_MODULE"), ==, "fcitx");
+    g_unsetenv("GTK_IM_MODULE"); g_setenv("XMODIFIERS", "@im=fcitx", TRUE);
+    prefer_ibus_im_module();
+    g_assert_null(g_getenv("GTK_IM_MODULE"));
+    g_unsetenv("XMODIFIERS");
     gtk_init();
     candidates = g_ptr_array_new_with_free_func(candidate_free);
     classic_chars = build_charset(classic_alphabet);
