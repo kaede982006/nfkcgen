@@ -1,0 +1,16 @@
+/nfkcgen.exe
+*.obj
+*.res
+
+# CMake / Visual Studio
+/build/
+/out/
+/stage/
+CMakeUserPresets.json
+/.vs/
+
+# vcpkg (manifest-mode local install)
+/vcpkg_installed/
+
+# Inno Setup output
+/installer/Output/

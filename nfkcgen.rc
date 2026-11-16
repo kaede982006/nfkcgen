@@ -1,0 +1,29 @@
+#include <winver.h>
+
+/* 실행 파일 아이콘. 가장 낮은 ID 아이콘을 GTK4 Win32 백엔드가 창 아이콘으로 쓴다.
+   logo.ico 는 logo.png 에서 생성한다(README 참고). */
+1 ICON "logo.ico"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
+ FILEOS VOS__WINDOWS32
+ FILETYPE VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904b0"
+    BEGIN
+      VALUE "FileDescription", "nfkcgen - NFKC research string generator"
+      VALUE "FileVersion", "1.0.0.0"
+      VALUE "ProductName", "nfkcgen"
+      VALUE "ProductVersion", "1.0.0.0"
+      VALUE "OriginalFilename", "nfkcgen.exe"
+      VALUE "LegalTrademarks", "org.xisik.nfkcgen"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 1200
+  END
+END

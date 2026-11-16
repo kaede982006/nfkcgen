@@ -1,0 +1,10 @@
+{
+  "name": "nfkcgen",
+  "version": "1.0.0",
+  "description": "NFKC research string generator (GTK4)",
+  "builtin-baseline": "cc2cd7d293278dac287251c2b3057e867ae415a0",
+  "dependencies": [
+    "gtk",
+    "pkgconf"
+  ]
+}
